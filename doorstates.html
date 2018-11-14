@@ -1,0 +1,155 @@
+<script type="text/javascript">
+var doors = [
+  // ALTBAU
+  ["OG Fluchttür"         , "0/5/1"],
+  ["Kellertür"            , "0/5/3"],
+  ["Kantine"              , "0/5/6"],
+  ["Fluchttür Küche"      , "0/5/4"],
+  ["Haupteingang"         , "0/5/0"],
+  ["Kleinanlieferung"     , "0/5/5"],
+  ["EG Fluchttür"         , "0/5/2"],
+  ["Großanlieferung Tür"  , "0/5/10"],
+  ["Großanlieferung Tor"  , "0/5/9"],
+  ["Fluchttür Heizung"    , "0/5/49"],
+  ["Fluchttür Kompressor" , "0/5/50"],
+
+  // NEUBAU
+  ["Warenannahme Tor", "0/5/25"],
+  ["Warenannahme Tür", "0/5/26"],
+  ["Versand Tor", "0/5/40"],
+  ["EG Teeküche - FT-Ost", "0/5/38"],
+  ["1.OG Teeküche - FT-Ost", "0/5/36"],
+  ["1.OG Produktion - FT-Ost", "0/5/35"],
+  ["2.OG Verw.1/Assistenz - Balkon", "0/5/32"],
+  ["2.OG Förderwesen - FT-West", "0/5/31"],
+  ["2.OG Teeküche - FT-Ost", "0/5/30"],
+  ["2.OG Ausstellung/Meeting - FT-Ost", "0/5/29"],
+  ["3.OG Schiebetür - West", "0/5/43"],
+  ["3.OG Nebenausgang - West", "0/5/44"],
+  ["3.OG Schiebetür - Ost", "0/5/45"],
+  ["3.OG Fluchttür - Ost", "0/5/46"],
+  ["3.OG Schiebetür Eventküche", "0/5/47"],
+  ["3.OG Tür Vorbereitungsküche", "0/5/48"]
+];
+</script>
+
+
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <title></title>
+</head>
+<body>
+
+
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+
+
+<style type="text/css">
+.tg  {
+  border-collapse:collapse;
+  border-spacing:0;
+}
+.tg td{
+  font-size:11px;
+  font-family:Verdana, Geneva, sans-serif !important; 
+  color:#004785;
+  padding:2px 5px;
+  border-style:none;
+  border-width:0px;
+  overflow:hidden;
+  word-break:normal;
+}
+.tg .tg-d4ct{
+  width: 80px;
+}
+</style>
+
+
+<table id=table class="tg" align=left border="0" ></table>
+
+
+
+
+<script>
+$( document ).ready(function() {
+  getDoorStates();
+  setInterval(function() {
+    getDoorStates();
+  }, 5000);
+});
+
+function getDoorStates() {
+  var url = "http://192.168.1.1/cgi-bin/gaobjcgi?id=0&confirm=yes";
+  var output;
+
+  $.each(doors, function(index, value) {
+    let val = value[1].split("/");
+    let id = (parseInt(val[0]) * 2048) + (parseInt(val[1]) * 256) + parseInt(val[2]);
+    url += "&object" + index + "=" + id
+  });
+
+  $.ajax({
+    type: "GET",
+    url: url,
+    cache: false,
+    crossDomain: true,
+    dataType: "xml",
+    success: function(xml) {
+        $(xml).find('object').each(function(i){
+            let name = doors[i][0];
+            let value = $(this).find('value').text();
+            let openClose;
+
+            if (value == "01") {
+              openClose = "<span style='color: green'>ZU</span>";
+            } else {
+              openClose = "<span style='color: red'>OFFEN</span>";
+            }
+
+            output += '<tr><td class="tg-dlv5"><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">';
+            output += name + '<br></td><td class="tg-d4ct">' + openClose + '</td></tr>'
+        });
+
+        output += '<tr><td colspan="2" id="time" class="tg-dlv5" style="color:004785; font-size: 6pt ;font-family:verdana;">' + getDatumLang() + '</td></tr>';
+        $("#table").html(output);
+    }
+  });
+}
+
+function getDatumLang() {
+  let tage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  let month = ['Jan', 'Feb', 'März', 'April', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  let today = new Date();
+
+  let day = today.getDay();
+  let date = today.getDate();
+  let m =  today.getMonth();
+  let y = today.getFullYear();
+  let dayOfWeek = tage[day];
+  let monthString = month[m];
+
+  if(date < 10){ date = '0' + date; }
+  
+  let h = today.getHours();
+  let min = today.getMinutes();
+  let s = today.getSeconds();
+
+  if(s < 10){ s = '0' + s; }
+
+  let retString = dayOfWeek + " " + date + ". " + monthString + " " + y + " " + h +":"+min+":"+s
+
+  return retString;
+}
+
+</script>
+
+
+
+</body>
+</html>
