@@ -1,0 +1,27 @@
+<script language="JavaScript" type="text/javascript">
+
+_spBodyOnLoadFunctionNames.push("hideFields");
+
+function findacontrol(FieldName) {
+   var arr = document.getElementsByTagName("!");//get all comments
+   for (var i=0;i < arr.length; i++ )
+   {
+      // now match the field name
+      if (arr[i].innerHTML.indexOf(FieldName) > 0) {
+         return arr[i];
+      }
+   }
+}
+
+function hideFields() {
+   var control = findacontrol("Device Name");
+   control.parentNode.parentNode.style.display="none";
+   control = findacontrol("Comments");
+   control.parentNode.parentNode.style.display="none";}
+   control = findacontrol("Options");
+   control.parentNode.parentNode.style.display="none";}
+}
+</script>
+
+
+<!-- Source: http://www.cleverworkarounds.com/2008/02/07/more-sharepoint-branding-customisation-using-javascript-part-1/ -->
