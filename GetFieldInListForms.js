@@ -1,4 +1,4 @@
-<script language="JavaScript" type="text/javascript">
+<script language="javascript" type="text/javascript">
 
 _spBodyOnLoadFunctionNames.push("hideFields");
 
@@ -14,12 +14,12 @@ function findacontrol(FieldName) {
 }
 
 function hideFields() {
-   var control = findacontrol("Device Name");
-   control.parentNode.parentNode.style.display="none";
-   control = findacontrol("Comments");
-   control.parentNode.parentNode.style.display="none";}
-   control = findacontrol("Options");
-   control.parentNode.parentNode.style.display="none";}
+   // uncomment the next line if you are troubleshooting
+   // debugger;
+   var control;
+   // Add the two lines below for each control to be hidden
+   //control = findacontrol("<Column Name>");
+   //control.parentNode.parentNode.style.display="none";
 }
 </script>
 
