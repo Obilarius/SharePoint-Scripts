@@ -3,7 +3,7 @@
 _spBodyOnLoadFunctionNames.push("hideFields");
 
 function findacontrol(FieldName) {
-   var arr = document.getElementsByTagName("!");//get all comments
+   var arr = document.getElementsByTagName("nobr");//get all comments
    for (var i=0;i < arr.length; i++ )
    {
       // now match the field name
@@ -19,7 +19,7 @@ function hideFields() {
    var control;
    // Add the two lines below for each control to be hidden
    //control = findacontrol("<Column Name>");
-   //control.parentNode.parentNode.style.display="none";
+   //control.parentNode.parentNode.parentNode.style.display="none";
 }
 </script>
 
