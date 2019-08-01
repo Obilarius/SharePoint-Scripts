@@ -26,6 +26,8 @@
 
 			$("#radioStations").html("");
 
+			streams.sort(SortByName);
+
 			$.each( streams, function( key, val ) {
 				let sn = val.server_name;
 				let url = val.listenurl;
@@ -38,6 +40,12 @@
 			});
 		}); 
 	});
+
+	function SortByName(a, b){
+		var aName = a.server_name.toLowerCase();
+		var bName = b.server_name.toLowerCase(); 
+		return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
+	}
 
 	function toTitleCase(str) {
 	    return str.replace(/\w\S*/g, function(txt){
