@@ -120,6 +120,8 @@ function getDatumLang() {
   let min = today.getMinutes();
   let s = today.getSeconds();
 
+  if(h < 10){ h = '0' + h; }
+  if(min < 10){ min = '0' + min; }
   if(s < 10){ s = '0' + s; }
 
   let retString = dayOfWeek + " " + date + ". " + monthString + " " + y + " " + h +":"+min+":"+s
