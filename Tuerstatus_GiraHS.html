@@ -1,0 +1,151 @@
+<script type="text/javascript">
+var doors = [
+  // ALTBAU
+  ["1.15 Konstruktion - Fluchttür West"           , "0/5/1"],
+  ["KG Fluchttür Ost"                             , "0/5/3"],
+  ["0.33 Kantine"                                 , "0/5/6"],
+  ["0.34 Küche Fluchttür"                         , "0/5/4"],
+  ["Haupteingang"                                 , "0/5/0"],
+  ["0.45 Kleinanlieferung Zerspanung"             , "0/5/5"],
+  ["0.25 Produktion -  Fluchttür West"            , "0/5/2"],
+  ["0.05 Versand Tür (Gate 1 )"                   , "0/5/10"],
+  ["0.05 Versand Tor (Gate 1)"                    , "0/5/9"],
+  ["U.16 Fluchttür Heizung"                       , "0/5/49"],
+  ["U.13 Fluchttür Kompressor"                    , "0/5/50"],
+
+  // NEUBAU
+  ["0.32 Warenannahme Tor (Gate 2)"               , "0/5/25"],
+  ["0.32 Warenannahme Tür (Gate 2)"               , "0/5/26"],
+  ["0.41 Versand Tor (Gate 3)"                    , "0/5/40"],
+  ["0.07 Teeküche -  Fluchttür Ost"               , "0/5/38"],
+  ["1.07 Teeküche -  Fluchttür Ost"               , "0/5/36"],
+  ["1.06 Produktion - Fluchttür Ost"              , "0/5/35"],
+  ["2.16 Management CEO - Balkon"                 , "0/5/32"],
+  ["2.22 Management CTO/COO - Fluchttür West"     , "0/5/31"],
+  ["2.07 Teeküche Fluchttür Ost"                  , "0/5/30"],
+  ["2.06 Ausstellung Fluchttür Ost"               , "0/5/29"],
+  ["3.OG Schiebetür West"                         , "0/5/43"],
+  ["3.OG Nebenausgang West"                       , "0/5/44"],
+  ["3.OG Schiebetür Ost"                          , "0/5/45"],
+  ["3.OG Fluchttür Ost"                           , "0/5/46"],
+  ["3.OG Schiebetür Eventküche"                   , "0/5/47"],
+  ["3.OG Vorbereitungsküche"                      , "0/5/48"]
+];
+</script>
+
+<!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> -->
+
+<!-- Für Sharepoint -->
+<script src="http://intranet/Documents/jquery-3.3.1.min.js"></script> 
+
+
+
+
+
+<table id=table class="tg" align=left border="0" ></table>
+
+
+
+<script>
+$( document ).ready(function() {
+  getDoorStates();
+
+  setInterval(function() {
+    getDoorStates();
+  }, 5000);
+});
+
+function getDoorStates() {
+  var output = "";
+
+  $.each(doors, function(index, value) {
+    let val = value[1].split("/");
+    let key = val.join("_");
+
+    // let url = "https://192.168.7.222/endpoints/call?key=CO@" + key + "&method=get&user=Arges&pw=Wackersdorf_007";
+    let url = "http://192.168.7.236:8080/endpoints/call?key=CO@" + key + "&method=get&user=Arges&pw=Wackersdorf_007";
+
+    $.ajax({
+      type: "GET",
+      url: url,
+      cache: false,
+      crossDomain: true,
+      async: false,
+      dataType: "json",
+      success: function(json) {
+        let name = doors[index][0];
+        let value = json.data.value;
+        let openClose;
+
+        if (value == "01") {
+          openClose = "<span style='color: green'>ZU</span>";
+        } else {
+          openClose = "<span style='color: red'>OFFEN</span>";
+        }
+
+
+        output += '<tr><td class="tg-dlv5"><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">'+ name +'<br></td>';
+        output += '<td class="tg-d4ct">' + openClose + '</td></tr>';
+
+        
+      },
+      error: function(jqXHR, Status, errorThrown) {
+        output = Status;
+        $("#table").html("GiraHS nicht erreichbar: " + output);
+        return;
+      }
+    });
+  }); // end each
+
+  
+  output += '<tr><td colspan="2" id="time" class="tg-dlv5" style="color:004785; font-size: 6pt ;font-family:verdana;">' + getDatumLang() + '</td></tr>';
+  $("#table").html(output);
+}
+
+function getDatumLang() {
+  let tage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  let month = ['Jan', 'Feb', 'März', 'April', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  let today = new Date();
+
+  let day = today.getDay();
+  let date = today.getDate();
+  let m =  today.getMonth();
+  let y = today.getFullYear();
+  let dayOfWeek = tage[day];
+  let monthString = month[m];
+
+  if(date < 10){ date = '0' + date; }
+  
+  let h = today.getHours();
+  let min = today.getMinutes();
+  let s = today.getSeconds();
+
+  if(s < 10){ s = '0' + s; }
+
+  let retString = dayOfWeek + " " + date + ". " + monthString + " " + y + " " + h +":"+min+":"+s
+
+  return retString;
+}
+
+</script>
+
+
+<style type="text/css">
+.tg  {
+  border-collapse:collapse;
+  border-spacing:0;
+}
+.tg td{
+  font-size:11px;
+  font-family:Verdana, Geneva, sans-serif !important; 
+  color:#004785;
+  padding:2px 5px;
+  border-style:none;
+  border-width:0px;
+  overflow:hidden;
+  word-break:normal;
+}
+.tg .tg-d4ct{
+  width: 80px;
+}
+</style>
