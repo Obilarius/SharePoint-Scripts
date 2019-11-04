@@ -1,147 +1,267 @@
 <script type="text/javascript">
-var doors = [
-  // ALTBAU
-  ["1.15 Konstruktion - Fluchttür West"           , "0/5/1"],
-  ["KG Fluchttür Ost"                             , "0/5/3"],
-  ["0.33 Kantine"                                 , "0/5/6"],
-  ["0.34 Küche Fluchttür"                         , "0/5/4"],
-  ["Haupteingang"                                 , "0/5/0"],
-  ["0.45 Kleinanlieferung Zerspanung"             , "0/5/5"],
-  ["0.25 Produktion -  Fluchttür West"            , "0/5/2"],
-  ["0.05 Versand Tür (Gate 1 )"                   , "0/5/10"],
-  ["0.05 Versand Tor (Gate 1)"                    , "0/5/9"],
-  ["U.16 Fluchttür Heizung"                       , "0/5/49"],
-  ["U.13 Fluchttür Kompressor"                    , "0/5/50"],
+  var doors = [
+    // ALTBAU
+    ["1.15 Konstruktion - Fluchttür West", "0/5/1"],
+    ["KG Fluchttür Ost", "0/5/3"],
+    ["0.33 Kantine", "0/5/6"],
+    ["0.34 Küche Fluchttür", "0/5/4"],
+    ["Haupteingang", "0/5/0"],
+    ["0.45 Kleinanlieferung Zerspanung", "0/5/5"],
+    ["0.25 Produktion -  Fluchttür West", "0/5/2"],
+    ["0.05 Versand Tür (Gate 1 )", "0/5/10"],
+    ["0.05 Versand Tor (Gate 1)", "0/5/9"],
+    ["U.16 Fluchttür Heizung", "0/5/49"],
+    ["U.13 Fluchttür Kompressor", "0/5/50"],
 
-  // NEUBAU
-  ["0.32 Warenannahme Tor (Gate 2)"               , "0/5/25"],
-  ["0.32 Warenannahme Tür (Gate 2)"               , "0/5/26"],
-  ["0.41 Versand Tor (Gate 3)"                    , "0/5/40"],
-  ["0.07 Teeküche -  Fluchttür Ost"               , "0/5/38"],
-  ["1.07 Teeküche -  Fluchttür Ost"               , "0/5/36"],
-  ["1.06 Produktion - Fluchttür Ost"              , "0/5/35"],
-  ["2.16 Management CEO - Balkon"                 , "0/5/32"],
-  ["2.22 Management CTO/COO - Fluchttür West"     , "0/5/31"],
-  ["2.07 Teeküche Fluchttür Ost"                  , "0/5/30"],
-  ["2.06 Ausstellung Fluchttür Ost"               , "0/5/29"],
-  ["3.OG Schiebetür West"                         , "0/5/43"],
-  ["3.OG Nebenausgang West"                       , "0/5/44"],
-  ["3.OG Schiebetür Ost"                          , "0/5/45"],
-  ["3.OG Fluchttür Ost"                           , "0/5/46"],
-  ["3.OG Schiebetür Eventküche"                   , "0/5/47"],
-  ["3.OG Vorbereitungsküche"                      , "0/5/48"]
-];
+    // NEUBAU
+    ["0.32 Warenannahme Tor (Gate 2)", "0/5/25"],
+    ["0.32 Warenannahme Tür (Gate 2)", "0/5/26"],
+    ["0.41 Versand Tor (Gate 3)", "0/5/40"],
+    ["0.07 Teeküche -  Fluchttür Ost", "0/5/38"],
+    ["1.07 Teeküche -  Fluchttür Ost", "0/5/36"],
+    ["1.06 Produktion - Fluchttür Ost", "0/5/35"],
+    ["2.16 Management CEO - Balkon", "0/5/32"],
+    ["2.22 Management CTO/COO - Fluchttür West", "0/5/31"],
+    ["2.07 Teeküche Fluchttür Ost", "0/5/30"],
+    ["2.06 Ausstellung Fluchttür Ost", "0/5/29"],
+    ["3.OG Schiebetür West", "0/5/43"],
+    ["3.OG Nebenausgang West", "0/5/44"],
+    ["3.OG Schiebetür Ost", "0/5/45"],
+    ["3.OG Fluchttür Ost", "0/5/46"],
+    ["3.OG Schiebetür Eventküche", "0/5/47"],
+    ["3.OG Vorbereitungsküche", "0/5/48"]
+  ];
 </script>
 
-<table id="table" class="doorstate"></table>
-<table id="date" class="doorstate"></table>
-
+<div class="doorstate-wrapper">
+  <button type="button" class="collapsible">
+    &#128682; Türstatus öffnen
+  </button>
+  <div class="content">
+    <table id="table" class="doorstate"></table>
+    <table id="date" class="doorstate"></table>
+  </div>
+</div>
 
 <script>
-var error = false;
+  var coll = document.querySelector(".doorstate-wrapper .collapsible");
+  var i;
 
-getDoorStates();
-getDateInTable();
-
-setInterval(function() {
-  if(!error) {
-    getDoorStates();
-    getDateInTable();
-  }
-}, 5000);
-
-function getDoorStates() {
-  var output = "";
-  let table = document.getElementById("table");
-  table.innerHTML = "";
-
-  doors.forEach(function(door) {
-    const val = door[1].split("/");
-    const key = val.join("_");
-
-    const url = "http://172.29.229.236:8080/endpoints/call?key=CO@" + key + "&method=get&user=Arges&pw=Wackersdorf_007";
-
-
-    var xmlhttp = new XMLHttpRequest();
-    
-
-    xmlhttp.ontimeout = function(e) {
-      table.innerHTML = '<tr><td>GiraHS nicht erreichbar</td></tr>';
-      error = true;
-      console.log("ERROR");
-    };
-
-    xmlhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            let myArr = JSON.parse(this.responseText);
-            let status = myArr.data.value;
-            let name = door[0];
-            let openClose;
-
-            if (status == "01") {
-              openClose = "<span style='color: green'>ZU</span>";
-            } else {
-              openClose = "<span style='color: red'>OFFEN</span>";
-            }
-
-            var out = '<tr><td><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">'+ name +'<br></td>';
-            out += '<td>' + openClose + '</td></tr>';
-
-            table.innerHTML = table.innerHTML + out;
-        }
-    };
-
-    xmlhttp.open("GET", url, true);
-    xmlhttp.timeout = 500;
-    xmlhttp.send();
+  coll.addEventListener("click", function() {
+    coll.classList.toggle("active");
+    var content = coll.nextElementSibling;
+    content.classList.toggle("show");
+    // if (content.style.display === "block") {
+    //   content.style.display = "none";
+    // } else {
+    //   content.style.display = "block";
+    // }
   });
-}
-
-function getDateInTable() {
-  let datetable = document.getElementById("date");
-  datetable.innerHTML = '<tr><td colspan="2" id="time" class="tg-dlv5" style="color:004785; font-size: 6pt ;font-family:verdana;">' + getDatumLang() + '</td></tr>';
-}
-
-function getDatumLang() {
-  let tage = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-  let month = ['Jan', 'Feb', 'März', 'April', 'Mai', 'Juni', 'Juli', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
-  let today = new Date();
-
-  let day = today.getDay();
-  let date = today.getDate();
-  let m =  today.getMonth();
-  let y = today.getFullYear();
-  let dayOfWeek = tage[day];
-  let monthString = month[m];
-
-  if(date < 10){ date = '0' + date; }
-  
-  let h = today.getHours();
-  let min = today.getMinutes();
-  let s = today.getSeconds();
-
-  if(h < 10){ h = '0' + h; }
-  if(min < 10){ min = '0' + min; }
-  if(s < 10){ s = '0' + s; }
-
-  let retString = dayOfWeek + " " + date + ". " + monthString + " " + y + " " + h +":"+min+":"+s
-
-  return retString;
-}
-
 </script>
 
+<script>
+  var error = false;
+
+  getDoorStates();
+  getDateInTable();
+
+  setInterval(function() {
+    if (!error) {
+      // getDoorStates();
+      // getDateInTable();
+    }
+  }, 5000);
+
+  function getDoorStates() {
+    var output = [];
+    let table = document.getElementById("table");
+    table.innerHTML = "";
+
+    doors.forEach(function(door, index) {
+      const val = door[1].split("/");
+      const key = val.join("_");
+
+      const url =
+        "http://172.29.229.236:8080/endpoints/call?key=CO@" +
+        key +
+        "&method=get&user=Arges&pw=Wackersdorf_007";
+
+      var xmlhttp = new XMLHttpRequest();
+
+      xmlhttp.ontimeout = function(e) {
+        table.innerHTML = "<tr><td>GiraHS nicht erreichbar</td></tr>";
+        error = true;
+        console.log("ERROR");
+      };
+
+      xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          let myArr = JSON.parse(this.responseText);
+          let status = myArr.data.value;
+          let name = door[0];
+          let openClose;
+
+          if (status == "01") {
+            openClose = "<span style='color: green'>ZU</span>";
+          } else {
+            openClose = "<span style='color: red'>OFFEN</span>";
+          }
+
+          output.push({
+            index: index,
+            html:
+              '<tr><td><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">' +
+              name +
+              "<br></td><td>" +
+              openClose +
+              "</td></tr>"
+          });
+
+          if (doors.length === output.length) {
+            output.sort(compare);
+            let innerHTML = "";
+
+            output.forEach(function(tr) {
+              innerHTML += tr.html;
+            });
+
+            // console.log(innerHTML);
+            table.innerHTML = innerHTML;
+          }
+        }
+      };
+
+      xmlhttp.open("GET", url, true);
+      xmlhttp.timeout = 500;
+      xmlhttp.send();
+    });
+  }
+
+  function getDateInTable() {
+    let datetable = document.getElementById("date");
+    datetable.innerHTML =
+      '<tr><td colspan="2" id="time" class="tg-dlv5" style="color:004785; font-size: 6pt ;font-family:verdana;">' +
+      getDatumLang() +
+      "</td></tr>";
+  }
+
+  function getDatumLang() {
+    let tage = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+    let month = [
+      "Jan",
+      "Feb",
+      "März",
+      "April",
+      "Mai",
+      "Juni",
+      "Juli",
+      "Aug",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Dez"
+    ];
+    let today = new Date();
+
+    let day = today.getDay();
+    let date = today.getDate();
+    let m = today.getMonth();
+    let y = today.getFullYear();
+    let dayOfWeek = tage[day];
+    let monthString = month[m];
+
+    if (date < 10) {
+      date = "0" + date;
+    }
+
+    let h = today.getHours();
+    let min = today.getMinutes();
+    let s = today.getSeconds();
+
+    if (h < 10) {
+      h = "0" + h;
+    }
+    if (min < 10) {
+      min = "0" + min;
+    }
+    if (s < 10) {
+      s = "0" + s;
+    }
+
+    let retString =
+      dayOfWeek +
+      " " +
+      date +
+      ". " +
+      monthString +
+      " " +
+      y +
+      " " +
+      h +
+      ":" +
+      min +
+      ":" +
+      s;
+
+    return retString;
+  }
+
+  function compare(a, b) {
+    if (a.index < b.index) {
+      return -1;
+    }
+    if (a.index > b.index) {
+      return 1;
+    }
+    // a muss gleich b sein
+    return 0;
+  }
+</script>
 
 <style type="text/css">
-table.doorstate td{
-  font-size:11px;
-  line-height: 11px;
-  font-family:Verdana, Geneva, sans-serif !important; 
-  color:#004785;
-  padding:2px 5px;
-  border-style:none;
-  border-width:0px;
-  overflow:hidden;
-  word-break:normal;
-}
+  .doorstate-wrapper,
+  .doorstate {
+    font-family: Verdana, Geneva, sans-serif !important;
+    color: #004785;
+  }
+
+  .doorstate-wrapper > .collapsible {
+    background-color: #eee;
+    cursor: pointer;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 13px;
+    color: #004785;
+  }
+
+  .doorstate-wrapper .active,
+  .doorstate-wrapper .collapsible:hover {
+    background-color: #ccc;
+  }
+
+  /* Style the collapsible content. Note: hidden by default */
+  .doorstate-wrapper .content {
+    /* display: none; */
+    max-height: 0px;
+    transition: max-height 1s ease-in;
+    overflow: hidden;
+  }
+
+  .doorstate-wrapper .content.show {
+    height: auto;
+    max-height: 100%;
+  }
+
+  table.doorstate td {
+    padding: 2px 5px;
+    border-style: none;
+    border-width: 0px;
+    overflow: hidden;
+    word-break: normal;
+    font-size: 11px;
+    line-height: 11px;
+  }
 </style>
