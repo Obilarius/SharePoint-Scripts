@@ -33,73 +33,73 @@ var doors = [
 ];
 </script>
 
-<!-- <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script> -->
-
-<!-- Für Sharepoint -->
-<script src="http://intranet/Documents/jquery-3.3.1.min.js"></script> 
-
-
-
-
-
-<table id=table class="tg" align=left border="0" ></table>
-
+<table id="table" class="doorstate"></table>
+<table id="date" class="doorstate"></table>
 
 
 <script>
-$( document ).ready(function() {
-  getDoorStates();
+var error = false;
 
-  setInterval(function() {
+getDoorStates();
+getDateInTable();
+
+setInterval(function() {
+  if(!error) {
     getDoorStates();
-  }, 5000);
-});
+    getDateInTable();
+  }
+}, 5000);
 
 function getDoorStates() {
   var output = "";
+  let table = document.getElementById("table");
+  table.innerHTML = "";
 
-  $.each(doors, function(index, value) {
-    let val = value[1].split("/");
-    let key = val.join("_");
+  doors.forEach(function(door) {
+    const val = door[1].split("/");
+    const key = val.join("_");
 
-    // let url = "https://192.168.7.222/endpoints/call?key=CO@" + key + "&method=get&user=Arges&pw=Wackersdorf_007";
-    let url = "http://192.168.7.236:8080/endpoints/call?key=CO@" + key + "&method=get&user=Arges&pw=Wackersdorf_007";
+    const url = "http://172.29.229.236:8080/endpoints/call?key=CO@" + key + "&method=get&user=Arges&pw=Wackersdorf_007";
 
-    $.ajax({
-      type: "GET",
-      url: url,
-      cache: false,
-      crossDomain: true,
-      async: false,
-      dataType: "json",
-      success: function(json) {
-        let name = doors[index][0];
-        let value = json.data.value;
-        let openClose;
 
-        if (value == "01") {
-          openClose = "<span style='color: green'>ZU</span>";
-        } else {
-          openClose = "<span style='color: red'>OFFEN</span>";
+    var xmlhttp = new XMLHttpRequest();
+    
+
+    xmlhttp.ontimeout = function(e) {
+      table.innerHTML = '<tr><td>GiraHS nicht erreichbar</td></tr>';
+      error = true;
+      console.log("ERROR");
+    };
+
+    xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            let myArr = JSON.parse(this.responseText);
+            let status = myArr.data.value;
+            let name = door[0];
+            let openClose;
+
+            if (status == "01") {
+              openClose = "<span style='color: green'>ZU</span>";
+            } else {
+              openClose = "<span style='color: red'>OFFEN</span>";
+            }
+
+            var out = '<tr><td><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">'+ name +'<br></td>';
+            out += '<td>' + openClose + '</td></tr>';
+
+            table.innerHTML = table.innerHTML + out;
         }
+    };
 
+    xmlhttp.open("GET", url, true);
+    xmlhttp.timeout = 500;
+    xmlhttp.send();
+  });
+}
 
-        output += '<tr><td class="tg-dlv5"><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">'+ name +'<br></td>';
-        output += '<td class="tg-d4ct">' + openClose + '</td></tr>';
-
-        
-      },
-      error: function(jqXHR, Status, errorThrown) {
-        output = Status;
-        $("#table").html("GiraHS nicht erreichbar: " + output);
-        return;
-      }
-    });
-  }); // end each
-
-  
-  output += '<tr><td colspan="2" id="time" class="tg-dlv5" style="color:004785; font-size: 6pt ;font-family:verdana;">' + getDatumLang() + '</td></tr>';
-  $("#table").html(output);
+function getDateInTable() {
+  let datetable = document.getElementById("date");
+  datetable.innerHTML = '<tr><td colspan="2" id="time" class="tg-dlv5" style="color:004785; font-size: 6pt ;font-family:verdana;">' + getDatumLang() + '</td></tr>';
 }
 
 function getDatumLang() {
@@ -133,12 +133,9 @@ function getDatumLang() {
 
 
 <style type="text/css">
-.tg  {
-  border-collapse:collapse;
-  border-spacing:0;
-}
-.tg td{
+table.doorstate td{
   font-size:11px;
+  line-height: 11px;
   font-family:Verdana, Geneva, sans-serif !important; 
   color:#004785;
   padding:2px 5px;
@@ -146,8 +143,5 @@ function getDatumLang() {
   border-width:0px;
   overflow:hidden;
   word-break:normal;
-}
-.tg .tg-d4ct{
-  width: 80px;
 }
 </style>
