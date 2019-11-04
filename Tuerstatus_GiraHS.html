@@ -47,15 +47,10 @@
   var coll = document.querySelector(".doorstate-wrapper .collapsible");
   var i;
 
-  coll.addEventListener("click", function() {
+  coll.addEventListener("click", function () {
     coll.classList.toggle("active");
     var content = coll.nextElementSibling;
     content.classList.toggle("show");
-    // if (content.style.display === "block") {
-    //   content.style.display = "none";
-    // } else {
-    //   content.style.display = "block";
-    // }
   });
 </script>
 
@@ -65,10 +60,10 @@
   getDoorStates();
   getDateInTable();
 
-  setInterval(function() {
+  setInterval(function () {
     if (!error) {
-      // getDoorStates();
-      // getDateInTable();
+      getDoorStates();
+      getDateInTable();
     }
   }, 5000);
 
@@ -77,24 +72,24 @@
     let table = document.getElementById("table");
     table.innerHTML = "";
 
-    doors.forEach(function(door, index) {
+    doors.forEach(function (door, index) {
       const val = door[1].split("/");
       const key = val.join("_");
 
       const url =
-        "http://172.29.229.236:8080/endpoints/call?key=CO@" +
+        "http://girahs:8080/endpoints/call?key=CO@" +
         key +
         "&method=get&user=Arges&pw=Wackersdorf_007";
 
       var xmlhttp = new XMLHttpRequest();
 
-      xmlhttp.ontimeout = function(e) {
+      xmlhttp.ontimeout = function (e) {
         table.innerHTML = "<tr><td>GiraHS nicht erreichbar</td></tr>";
         error = true;
         console.log("ERROR");
       };
 
-      xmlhttp.onreadystatechange = function() {
+      xmlhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
           let myArr = JSON.parse(this.responseText);
           let status = myArr.data.value;
@@ -109,8 +104,7 @@
 
           output.push({
             index: index,
-            html:
-              '<tr><td><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">' +
+            html: '<tr><td><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">' +
               name +
               "<br></td><td>" +
               openClose +
@@ -121,7 +115,7 @@
             output.sort(compare);
             let innerHTML = "";
 
-            output.forEach(function(tr) {
+            output.forEach(function (tr) {
               innerHTML += tr.html;
             });
 
@@ -225,7 +219,7 @@
     color: #004785;
   }
 
-  .doorstate-wrapper > .collapsible {
+  .doorstate-wrapper>.collapsible {
     background-color: #eee;
     cursor: pointer;
     padding: 10px;
@@ -244,15 +238,17 @@
 
   /* Style the collapsible content. Note: hidden by default */
   .doorstate-wrapper .content {
-    /* display: none; */
-    max-height: 0px;
-    transition: max-height 1s ease-in;
+    display: none;
+    /* max-height: 0px; */
+    /* transition: max-height 0.5s ease-in; */
     overflow: hidden;
+    height: 550px;
   }
 
   .doorstate-wrapper .content.show {
-    height: auto;
-    max-height: 100%;
+    /* height: auto; */
+    /* max-height: 100%; */
+    display: block;
   }
 
   table.doorstate td {
