@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Arges Radio</title>
+</head>
+
+<body>
+  <div id="webradio">
+    <audio id="webradio-audio" preload="none">
+      <source id="webradio-audio-src" src="" type="audio/mpeg">
+    </audio>
+    <div id="webradio-audio-controls">
+      <img class="disabled" id="playbutton" src="http://intranet/PublishingImages/webradio_play.png" width="24"
+        alt="Play" title="Play" onclick="play_wr()">
+
+      <img class="disabled" id="stopbutton" src="http://intranet/PublishingImages/webradio_pause.png" width="24"
+        alt="Pause" disabled="" onclick="stop_wr()">
+
+      <input id="vol-control" style="border: 0" type="range" min="0" max="100" step="1" oninput="SetVolume(this.value)"
+        onchange="SetVolume(this.value)">
+    </div>
+    <p id="aktuellerTitel">Aktueller Titel: <span id="marquee" class="marquee"><span id="songtitle"
+          class="songtitle">kein
+          Songtitle</span></span></p>
+
+    <div id="radioStations"></div>
+  </div>
+</body>
+
+</html>
+
+
+
+<script>
+  var request = new XMLHttpRequest();
+  request.open('GET', 'http://radio.arges.local:8000/status-json.xsl', true);
+
+  request.onload = function () {
+    if (request.status >= 200 && request.status < 400) {
+      var data = JSON.parse(request.responseText);
+
+      var streams = data.icestats.source
+
+      let radioStations = document.getElementById("radioStations");
+      radioStations.innerHTML = "";
+
+      streams.sort(SortByName);
+
+      for (var i = 0; i < streams.length; i++) {
+        let val = streams[i];
+
+        let sn = val.server_name;
+        let url = val.listenurl;
+        let genre = val.genre;
+
+        let div = '<div class="btn" data-url="' + url + '" data-name="' + sn +
+          '" onclick="changeSender(this)"><img src="data:image/gif;base64,R0lGODlhCAAMAIABAOeqGP///yH5BAEKAAEALAAAAAAIAAwAAAINjI+pywgPHJSPxoZZAQA7" align="top">' +
+          toTitleCase(sn) + '</div>';
+
+        radioStations.innerHTML += div;
+      }
+    } else {
+      // We reached our target server, but it returned an error
+      console.log("err1");
+    }
+  };
+
+  request.onerror = function () {
+    // There was a connection error of some sort
+    console.log("err2");
+  };
+
+  request.send();
+
+
+
+  function SortByName(a, b) {
+    var aName = a.server_name.toLowerCase();
+    var bName = b.server_name.toLowerCase();
+    return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
+  }
+
+  function toTitleCase(str) {
+    return str.replace(/\w\S*/g, function (txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  }
+
+  function play_wr() {
+    var audio = document.getElementById("webradio-audio");
+    var playbutton = document.getElementById("playbutton");
+    var stopbutton = document.getElementById("stopbutton");
+    audio.load(); // auch gebufferte Reste entfernen
+    var play = audio.play();
+
+    playbutton.removeAttribute('title');
+    playbutton.setAttribute('disabled', 'disabled');
+    stopbutton.removeAttribute('disabled');
+    stopbutton.setAttribute('title', 'Pause');
+
+    playbutton.classList.add("disabled");
+    stopbutton.classList.remove("disabled");
+  }
+
+  function stop_wr() {
+    var playbutton = document.getElementById("playbutton");
+    var stopbutton = document.getElementById("stopbutton");
+    document.getElementById("webradio-audio").load();
+
+    playbutton.removeAttribute('disabled');
+    playbutton.setAttribute('title', 'Play');
+    stopbutton.removeAttribute('title');
+    stopbutton.setAttribute('disabled', 'disabled');
+
+    playbutton.classList.remove("disabled");
+    stopbutton.classList.add("disabled");
+  }
+
+  function SetVolume(val) {
+    document.getElementById('webradio-audio').volume = val / 100;
+  }
+
+  if (document.getElementById('webradio-audio')) {
+    document.getElementById("webradio-audio").volume = 0.5;
+  }
+
+  function changeSender(btn) {
+    var senderSrc = btn.getAttribute('data-url');
+    var activeSender = document.getElementsByClassName('activeSender');
+
+    if (activeSender[0] == btn) return;
+
+    let acS = document.getElementsByClassName('activeSender');
+
+    console.log(acS.length);
+
+    if (acS.length != 0) {
+      // console.log(acS[0]);
+      acS[0].classList.remove("activeSender");
+    }
+
+    btn.classList.add("activeSender");
+
+    var audioSrc = document.getElementById('webradio-audio-src');
+    audioSrc.src = senderSrc;
+
+    play_wr();
+
+    setSongTitle();
+
+    setInterval(function () {
+      console.log("Songtitle refresh");
+      setSongTitle()
+    }, 4000);
+
+    // var interval = setIntervalAndExecute(setSongTitle(), 4000);
+  }
+
+  function setSongTitle() {
+    var request = new XMLHttpRequest();
+    request.open('GET', 'http://radio.arges.local:8000/status-json.xsl', true);
+
+    request.onload = function () {
+      if (request.status >= 200 && request.status < 400) {
+        var data = JSON.parse(request.responseText);
+        var streams = data.icestats.source
+
+        var activeSender = document.getElementsByClassName('activeSender');
+        activeSender = activeSender[0];
+
+        activeID = activeSender.id
+        activeName = activeSender.getAttribute('data-name');
+
+        for (var i = 0; i < streams.length; i++) {
+          let val = streams[i];
+          if (val.server_name == activeName) {
+            document.getElementById('songtitle').innerHTML = val.title
+          }
+        }
+      } else {
+        // We reached our target server, but it returned an error
+        console.log("err1");
+      }
+    };
+
+    request.onerror = function () {
+      // There was a connection error of some sort
+      console.log("err2");
+    };
+
+    request.send();
+  }
+
+
+  function setIntervalAndExecute(fn, t) {
+    // fn();
+    return (setInterval(fn, t));
+  }
+</script>
+
+<style type="text/css">
+  #webradio {
+    font-size: 11px;
+    font-family: Verdana, Geneva, sans-serif !important;
+    color: #004785;
+
+    width: 300px;
+    overflow: hidden;
+  }
+
+  #webradio-audio-controls {
+    padding: 10px 10px 0 10px;
+  }
+
+  #aktuellerTitel {
+    padding: 0px 10px;
+    font-style: italic;
+  }
+
+  #webradio-audio-controls>#vol-control {
+    padding: 0;
+    width: 200px;
+    height: 30px;
+  }
+
+  #webradio #playbutton,
+  #webradio #stopbutton {
+    cursor: pointer;
+    padding: 2px 5px;
+    border: 1px solid #888;
+    border-radius: 5px;
+  }
+
+  .disabled {
+    opacity: .4;
+    cursor: default !important;
+    background: transparent;
+  }
+
+  .btn {
+    cursor: pointer;
+    padding: 2px 10px;
+
+  }
+
+  .activeSender {
+    background: lightgrey;
+    font-weight: bold;
+  }
+
+
+  .marquee {
+    width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    margin: auto;
+    /* hier evtl. noch font-size, color usw. */
+  }
+
+  .marquee span {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 10s linear infinite;
+  }
+
+  /* Make it move */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+</style>
